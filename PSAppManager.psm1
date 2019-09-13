@@ -17,7 +17,56 @@
 #>
 
 #---- General Functions ----#
+function Get-PSApps {
+    [CmdletBinding()]
+    param (
+        # Parameter help description
+        # [Parameter(AttributeValues)]
+        [switch]
+        $Update,
+        # Path to config file containing relevant app details.
+        # [Parameter(AttributeValues)]
+        [string]
+        $Path = '.\PSAppManager_Settings.csv'
+    )
 
+    Write-Verbose -Message "Attempting to get CSV file from 'Get-ConfigCsv' function."
+    $appListConfig = Get-ConfigCsv -Path $Path
+    Write-Verbose -Message "AppList: $($appListConfig | Out-String)"
+
+    $missingPackage = @()
+    foreach ($item in $appListConfig) {
+        try {
+            Get-Package -ProviderName ChocolateyGet -Name $item.Application -ErrorAction Stop
+        }
+        catch {
+            $missingPackage += $item
+        }
+    }
+    
+    Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
+}
+
+function Get-ConfigCsv {
+    [CmdletBinding()]
+    param (
+        # Parameter help description
+        # [Parameter(AttributeValues)]
+        [string]
+        $Path = '.\PSAppManager_Settings.csv'
+    )
+
+    $AppCSV = Import-Csv -Path $Path
+
+    if ($AppCSV) {
+        Write-Log -LogMessage "CSV imported successfully"
+    }
+    else {
+        Write-Log -LogMessage "ERROR: CSV did not seem to import correctly"
+    }
+    
+    Return $AppCSV
+}
 
 #---- Deploy Functions ----#
 
