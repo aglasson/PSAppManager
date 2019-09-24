@@ -17,6 +17,81 @@
 #>
 
 #---- General Functions ----#
+function Get-PSAppsEnv {
+    [CmdletBinding()]
+    param (
+        # TODO: Parameter help description
+        [Parameter()]
+        [string]
+        $Path = (Join-Path (Split-path (Get-Module -Name PSAppManager).Path) "LocalSettings.cfg")
+    )
+    
+    try {
+        $iniContent = Get-IniContent -FilePath $Path    
+    }
+    catch {
+        Write-Error -Message "No config file at `'$Path`'" -ErrorAction Stop
+    }
+
+    if (!($iniContent)) {
+        Write-Error -Message "No environment setting found in `'$Path`'"
+    }
+    else {
+        try {
+            $iniEnv = $iniContent["_"]["Environment"]
+        }
+        catch {
+            $inicaught = $true
+            Write-Error -Message "No environment setting found in `'$Path`'" -ErrorAction Stop
+        }
+
+        if (!($inicaught)) {
+            Return $iniEnv
+        }
+    }
+}
+
+function Set-PSAppsEnv {
+    [CmdletBinding()]
+    param (
+        # TODO: Parameter help description
+        [Parameter(Mandatory=$True)]
+        [string]
+        $Environment,
+        # TODO: Parameter help description
+        [Parameter()]
+        [string]
+        $Path = (Join-Path (Split-path (Get-Module -Name PSAppManager).Path) "LocalSettings.cfg")
+    )
+    
+    if (!(Test-Path $Path)) {
+        Write-Verbose "Cannot find an existing 'LocalSettings.cfg' config file, creating."
+        $newFile = $True
+        New-Item -Path $Path -ItemType File
+    }
+
+    $iniContentNew = @{"Environment"=$Environment}
+
+    if ($newFile){
+        Write-Verbose "New file so writing fresh ini content."
+        $iniContentNew | Out-IniFile -FilePath $Path -Force
+    }
+    else {
+        try {
+            $iniContent = Get-IniContent -FilePath $Path
+            $iniContent["_"]["Environment"] = $Environment
+            $iniContent | Out-IniFile -FilePath $Path -Force
+        }
+        catch {
+            Write-Warning "Cannot get environment config from exisitng config file. Overwriting existing file required."
+            $promptResponse = Read-Host -Prompt "Continue?[y/n]"
+            if ( $promptResponse -match "[yY]" ) {
+                $iniContentNew | Out-IniFile -FilePath $Path -Force
+            }
+        }
+    }
+}
+
 function Get-PSApps {
     [CmdletBinding()]
     param (
