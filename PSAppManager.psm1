@@ -27,7 +27,11 @@ function Get-PSApps {
         # Path to config file containing relevant app details.
         # [Parameter(AttributeValues)]
         [string]
-        $Path = '.\PSAppManager_Settings.csv'
+        $Path = '.\PSAppManager_Settings.csv',
+        # Path to config file containing relevant app details.
+        # [Parameter(AttributeValues)]
+        [switch]
+        $Missing
     )
 
     Write-Verbose -Message "Attempting to get CSV file from 'Get-ConfigCsv' function."
@@ -35,9 +39,10 @@ function Get-PSApps {
     Write-Verbose -Message "AppList: $($appListConfig | Out-String)"
 
     $missingPackage = @()
+    $installedPackage = @()
     foreach ($item in $appListConfig) {
         try {
-            Get-Package -ProviderName ChocolateyGet -Name $item.Application -ErrorAction Stop
+            $installedPackage += Get-Package -ProviderName ChocolateyGet -Name $item.Application -ErrorAction Stop
         }
         catch {
             $missingPackage += $item
@@ -45,6 +50,18 @@ function Get-PSApps {
     }
     
     Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
+
+    if ($Missing) {
+        Write-Verbose "'Get-PSApps' switch '-Missing' used so returning only missing packages."
+        Return $missingPackage
+    }
+    else {
+        Write-Verbose "'Get-PSApps' not using '-Missing' switch so returning only installed packages."
+        Return $installedPackage
+    }
+    
+    Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
+}
 }
 
 function Get-ConfigCsv {
