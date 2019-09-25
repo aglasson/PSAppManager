@@ -46,6 +46,7 @@ function Get-PSAppsEnv {
         }
 
         if (!($inicaught)) {
+            Write-Verbose "Environment currently set to: $iniEnv"
             Return $iniEnv
         }
     }
@@ -98,8 +99,19 @@ function Get-PSApps {
         # Path to config file containing relevant app details.
         # [Parameter(AttributeValues)]
         [string]
-        $Path = '.\PSAppManager_Settings.csv'
+        $Path = '.\PSAppManager_Settings.csv',
+        # Returns full list of apps in CSV including ones not matching device configured environment.
+        # [Parameter(AttributeValues)]
+        [switch]
+        $AllEnvironment
     )
+
+    if ($AllEnvironment) {
+        Write-Verbose -Message "'`$AllEnvironment' specified so wildcarding to include returned items not matching device configured environment."
+    }
+    else {
+        $AppEnv = Get-PSAppsEnv
+    }
 
     Write-Verbose -Message "Attempting to get CSV file from 'Get-ConfigCsv' function."
     $appListConfig = Get-ConfigCsv -Path $Path
@@ -126,8 +138,13 @@ function Get-PSApps {
         $missingPackage = $null
     }
 
+    if ($AllEnvironment) {
     Return $packageList | Format-Table
     }
+    else {
+        Return $packageList | Where-Object {$_.expectedEnvironment -eq $AppEnv -or $_.expectedEnvironment -eq "All"} | Format-Table   
+    }
+}
     
     Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
 }
