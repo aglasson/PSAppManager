@@ -95,44 +95,38 @@ function Set-PSAppsEnv {
 function Get-PSApps {
     [CmdletBinding()]
     param (
-        # Parameter help description
-        # [Parameter(AttributeValues)]
-        [switch]
-        $Update,
         # Path to config file containing relevant app details.
         # [Parameter(AttributeValues)]
         [string]
-        $Path = '.\PSAppManager_Settings.csv',
-        # Path to config file containing relevant app details.
-        # [Parameter(AttributeValues)]
-        [switch]
-        $Missing
+        $Path = '.\PSAppManager_Settings.csv'
     )
 
     Write-Verbose -Message "Attempting to get CSV file from 'Get-ConfigCsv' function."
     $appListConfig = Get-ConfigCsv -Path $Path
     Write-Verbose -Message "AppList: $($appListConfig | Out-String)"
 
-    $missingPackage = @()
-    $installedPackage = @()
+    $packageList = @()
     foreach ($item in $appListConfig) {
         try {
-            $installedPackage += Get-Package -ProviderName ChocolateyGet -Name $item.Application -ErrorAction Stop
+            $installedPackage = Get-Package -ProviderName ChocolateyGet -Name $item.Application -ErrorAction Stop
+            Write-Verbose -Message "Have installed package: $($item.Application)"
+
         }
         catch {
-            $missingPackage += $item
-        }
+            Write-Verbose -Message "Have missing package: $($item.Application)"
     }
     
-    Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
-
-    if ($Missing) {
-        Write-Verbose "'Get-PSApps' switch '-Missing' used so returning only missing packages."
-        Return $missingPackage
+        if ($installedPackage) {
+            $packageList += [pscustomobject]@{name=$item.Application;requiredVersion=$item.Version;installedVersion=$installedPackage.Version;expectedEnvironment=$item.environment;settingsPath=$item.SettingsPath}
     }
     else {
-        Write-Verbose "'Get-PSApps' not using '-Missing' switch so returning only installed packages."
-        Return $installedPackage
+            $packageList += [pscustomobject]@{name=$item.Application;requiredVersion=$item.Version;installedVersion="NotInstalled";expectedEnvironment=$item.environment;settingsPath=$item.SettingsPath}
+        }
+        $installedPackage = $null
+        $missingPackage = $null
+    }
+
+    Return $packageList | Format-Table
     }
     
     Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
