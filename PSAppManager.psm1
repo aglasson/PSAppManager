@@ -135,21 +135,16 @@ function Get-PSApps {
             $packageList += [pscustomobject]@{name=$item.Application;requiredVersion=$item.Version;installedVersion="NotInstalled";expectedEnvironment=$item.environment;settingsPath=$item.SettingsPath}
         }
         $installedPackage = $null
-        $missingPackage = $null
     }
 
     if ($AllEnvironment) {
-    Return $packageList | Format-Table
+        Return $packageList
     }
     else {
-        Return $packageList | Where-Object {$_.expectedEnvironment -eq $AppEnv -or $_.expectedEnvironment -eq "All"} | Format-Table   
+        Return $packageList | Where-Object {$_.expectedEnvironment -eq $AppEnv -or $_.expectedEnvironment -eq "All"}
     }
 }
     
-    Write-Verbose "The packages listed but not identified with 'Get-Package': $($missingPackage | Out-String)"
-}
-}
-
 function Get-ConfigCsv {
     [CmdletBinding()]
     param (
