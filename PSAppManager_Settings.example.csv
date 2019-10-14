@@ -1,4 +1,4 @@
-Application,Environment,Version,SettingsPath
+Name,Environment,Version,SettingsPath
 keepass.install,All,Latest,$Env:appdata\KeePass
 mremoteng,Work,Latest
 logitech-options,Home,Latest

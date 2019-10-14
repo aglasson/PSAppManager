@@ -120,24 +120,57 @@ function Get-PSApps {
     $packageList = @()
     foreach ($item in $appListConfig) {
         try {
-            $installedPackage = Get-Package -ProviderName ChocolateyGet -Name $item.Application -ErrorAction Stop
-            Write-Verbose -Message "Have installed package: $($item.Application)"
+            $installedPackage = Get-Package -ProviderName ChocolateyGet -Name $item.Name -ErrorAction Stop
+            Write-Verbose -Message "Have installed package: $($item.Name)"
 
         }
         catch {
-            Write-Verbose -Message "Have missing package: $($item.Application)"
+            Write-Verbose -Message "Have missing package: $($item.Name)"
     }
     
+        try {
+            $checkUpdatePackage = Find-Package -ProviderName ChocolateyGet -Name $item.Name -ErrorAction Stop
+            if ($installedPackage.Version -lt $checkUpdatePackage.Version) {
+                $updatedPackage = $checkUpdatePackage
+                Write-Verbose -Message "Found update for package: $($item.Name)"
+            }
+        }
+        catch {
+            Write-Verbose -Message "Have package missing from provider: $($item.Name)"
+        }
+        
+        $packageList += [pscustomobject]@{
+            name                =   $item.Name
+            requiredVersion     =   $item.Version
+            installedVersion    =   
         if ($installedPackage) {
-            $packageList += [pscustomobject]@{name=$item.Application;requiredVersion=$item.Version;installedVersion=$installedPackage.Version;expectedEnvironment=$item.environment;settingsPath=$item.SettingsPath}
+                    $installedPackage.Version
     }
     else {
-            $packageList += [pscustomobject]@{name=$item.Application;requiredVersion=$item.Version;installedVersion="NotInstalled";expectedEnvironment=$item.environment;settingsPath=$item.SettingsPath}
+                    "NotInstalled"
         }
-        $installedPackage = $null
+            latestVersion       =
+                if ($updatedPackage) {
+                    $updatedPackage.Version
+    }
+                else {
+                    "UpToDate"
+                }
+            expectedEnvironment =   $item.environment
+            settingsPath        =   $item.SettingsPath
+        }
+
+        Clear-Variable -Name updatedPackage,checkUpdatePackage,installedPackage -ErrorAction Ignore
     }
 
     if ($AllEnvironment) {
+        $PackageListFinal = $packageList
+    }
+    else {
+        $PackageListFinal = $packageList | Where-Object {$_.expectedEnvironment -eq $AppEnv -or $_.expectedEnvironment -eq "All"}
+    }
+    $PackageListFinal
+}
         Return $packageList
     }
     else {
