@@ -7,27 +7,33 @@ Applications install and version management will take place with a package manag
 Application config synchronisation will take place with the likes of GitHub Gist's, Google Drive, OneDrive etc. Ideally detecting the latest configuration file in the default application config directory and copying it to the synchronisation location and vice versa.
 
 ## Features
-* 
+* Refers to a CSV for listing expected apps and their versions that can then be installed or updated via Chocolatey 
+
+## Known Issues
+* Poor performance of 'Get-PSApps".
+* Adhering to 'expectedEnvironment' not implemented properly yet.
+* Lack of module, function and parameter PowerShell help inclusion.
 
 ## Installation
 #### Manual Import Method
 * Copy contents of Master Branch to your PowerShell Module Path directory (suggested: `C:\Program Files\WindowsPowerShell\Modules`)
 * Import the module:
   ```powershell
-  PS> Import-Module -Name PSAppManager # If in PSModulePath. New Powershell session after copy.
+  PS> Import-Module -Name PSAppManager # If in PSModulePath. New PowerShell session after copy.
   ```
 
 ## Example Usage
 TODO: Currently a Placeholder
 #### Install expected apps
 ```powershell
-PS> Install-PSApps # This will install stuff
+PS> Get-PSApps # This returns an array of apps from the expected CSV lists versions (installed, latest available), if installed and if update available.
 ```
-#### Running the synchronisation
-```
-PS> Do-Stuff -Command
+#### Install expected apps
+```powershell
+PS> Install-PSApps [-InstallOnly/UpdateOnly] # This will install and/or update apps listed in CSV. Expects the Get-PSApps object piped into it. 
 ```
 ##### Arguments
+TODO:  
 `-Arg` This does x
 
 ## Logic
@@ -35,8 +41,7 @@ TODO: Currently a Placeholder
 
 ## Intended Features
 #### Major Features
-* Refers to a config file that specifies the applications, which system 'environment' they should exist in, their expected versions, config paths for each app.
-* Installation of a package manager, installation of desired apps at a desired version.
+* Installation/setup and configuration of a package manager (currently just Chocolatey).
 * Settings synchronisation to and from a location accessible at all intended 'environments'.
 
 #### Minor Features
