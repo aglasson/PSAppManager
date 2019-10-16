@@ -171,10 +171,88 @@ function Get-PSApps {
     }
     $PackageListFinal
 }
-        Return $packageList
+
+function Install-PSApps {
+    [CmdletBinding()]
+    param (
+        # TODO: Parameter help description
+        # [Parameter(
+        #     Mandatory           = $true,
+        #     ValueFromPipeline   = $true,
+        #     # ParameterSetName    = "InstallOnly"
+        # )]
+        [Parameter(
+            Mandatory           = $true,
+            ValueFromPipeline   = $true#,
+            # ParameterSetName    = "UpdateOnly"
+        )]
+        [psobject]
+        $name,
+        # Parameter help description
+        [Parameter(
+            # ParameterSetName = "UpdateOnly"
+        )]
+        [Switch]
+        $UpdateOnly,
+        # Parameter help description
+        [Parameter(
+            # ParameterSetName = "InstallOnly"
+        )]
+        [Switch]
+        $InstallOnly
+    )
+
+    BEGIN{
+        function Select-ChangeItem {
+            param (
+                # TODO: Parameter help description
+                [Parameter(
+                    Mandatory = $true,
+                    ValueFromPipeline = $true)]
+                $checkPSApp
+            )
+            
+            if ($UpdateOnly) {
+                if (($checkPSApp.UpToDate -eq $true) -or ($checkPSApp.installedVersion -eq "NotInstalled")) {
+                    Write-Verbose "'$($checkPSApp.Name)' is up to date or not installed so no action required with '-UpdateOnly' selected"
+                }
+                else {
+                    Return $checkPSApp
+                }
+            }
+            elseif ($InstallOnly) {
+                if ($checkPSApp.installedVersion -eq "NotInstalled") {
+                    Return $checkPSApp
+                }
+                else {
+                    Write-Verbose "'-InstallOnly' selected and '$($checkPSApp.Name)' has installedVersion"
+                }
+            }
+            else {
+                Return $checkPSApp
+            }
+            
+        }
+    }
+
+    PROCESS {
+        $installAppObject = $name | Select-ChangeItem
+
+        if ($installAppObject) {
+            Write-Verbose "'$($Name.Name)' returned from Select-ChangeItem - Installing or Updating"
     }
     else {
-        Return $packageList | Where-Object {$_.expectedEnvironment -eq $AppEnv -or $_.expectedEnvironment -eq "All"}
+            Return
+        }
+
+        $HashArguments = @{
+            Name = $installAppObject.Name
+            Provider = "ChocolateyGet"
+        }
+        if ($installAppObject.requiredVersion -ne "Latest") {
+            $HashArguments.Add("RequiredVersion", $installAppObject.requiredVersion)
+        }
+        Install-Package @HashArguments
     }
 }
     
