@@ -23,7 +23,6 @@ Application config synchronisation will take place with the likes of GitHub Gist
   ```
 
 ## Example Usage
-TODO: Currently a Placeholder
 #### Install expected apps
 ```powershell
 PS> Get-PSApps # This returns an array of apps from the expected CSV lists versions (installed, latest available), if installed and if update available.
@@ -35,9 +34,6 @@ PS> Install-PSApps [-InstallOnly/UpdateOnly] # This will install and/or update a
 ##### Arguments
 TODO:  
 `-Arg` This does x
-
-## Logic
-TODO: Currently a Placeholder
 
 ## Intended Features
 #### Major Features
