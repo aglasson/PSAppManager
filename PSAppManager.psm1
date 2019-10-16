@@ -130,11 +130,7 @@ function Get-PSApps {
     
         try {
             $checkUpdatePackage = Find-Package -ProviderName ChocolateyGet -Name $item.Name -ErrorAction Stop
-            if ($installedPackage.Version -lt $checkUpdatePackage.Version) {
-                $updatedPackage = $checkUpdatePackage
-                Write-Verbose -Message "Found update for package: $($item.Name)"
             }
-        }
         catch {
             Write-Verbose -Message "Have package missing from provider: $($item.Name)"
         }
@@ -149,14 +145,18 @@ function Get-PSApps {
     else {
                     "NotInstalled"
         }
-            latestVersion       =
-                if ($updatedPackage) {
-                    $updatedPackage.Version
+            latestVersion       =   $checkUpdatePackage.Version
+            UpToDate            =   
+                if (($item.Version -eq "Latest") -and ($installedPackage.Version -ge $checkUpdatePackage.Version)) {
+                    $True
     }
-                else {
-                    "UpToDate"
+                elseif (($item.Version -ne "Latest") -and ($installedPackage.Version -ge $item.Version)) {
+                    $True
                 }
-            expectedEnvironment =   $item.environment
+                else {
+                    $False   
+                }
+            expectedEnvironment =   $item.Environment
             settingsPath        =   $item.SettingsPath
         }
 
@@ -167,7 +167,7 @@ function Get-PSApps {
         $PackageListFinal = $packageList
     }
     else {
-        $PackageListFinal = $packageList | Where-Object {$_.expectedEnvironment -eq $AppEnv -or $_.expectedEnvironment -eq "All"}
+        $PackageListFinal = $packageList | Where-Object {($_.expectedEnvironment -eq $AppEnv) -or ($_.expectedEnvironment -eq "All")}
     }
     $PackageListFinal
 }
