@@ -1,6 +1,6 @@
 try {
     Clear-Host
-    Import-Module .\PSAppManager.psd1 -Force -ErrorAction Stop
+    Import-Module .\PSAppManager\PSAppManager.psd1 -Force -ErrorAction Stop
     Write-Host "PSAppsManager Powershell module re-imported in session for debugging"
 }
 catch {

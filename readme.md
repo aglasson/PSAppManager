@@ -16,7 +16,7 @@ Application config synchronisation will take place with the likes of GitHub Gist
 
 ## Installation
 #### Manual Import Method
-* Copy contents of Master Branch to your PowerShell Module Path directory (suggested: `C:\Program Files\WindowsPowerShell\Modules`)
+* Copy contents of Master Branch PSAppManager sub directory to your PowerShell Module Path directory (suggested: `C:\Program Files\WindowsPowerShell\Modules`)
 * Import the module:
   ```powershell
   PS> Import-Module -Name PSAppManager # If in PSModulePath. New PowerShell session after copy.
